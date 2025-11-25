@@ -14,7 +14,7 @@ export function MainLayout() {
 
       {/* FOOTER */}
       <footer className="py-6 text-center text-sm text-gray-500 border-t">
-        © {new Date().getFullYear()} • Ecommerce Shop — Desenvolvido por Thiaguera
+        © {new Date().getFullYear()} • Ecommerce Shop — Desenvolvido por Andre Mari
       </footer>
     </div>
   );

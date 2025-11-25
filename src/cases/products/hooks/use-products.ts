@@ -1,16 +1,17 @@
 import { useQuery } from "@tanstack/react-query";
 
-export function useCategoryProducts(categoryId?: string) {
+export function useProducts() {
   return useQuery({
-    queryKey: ["categoryProducts", categoryId],
+    queryKey: ["products"],
     queryFn: async () => {
-      const res = await fetch(`http://localhost:3001/products/category/${categoryId}`);
-      if (!res.ok) throw new Error("Erro ao buscar produtos da categoria");
+      const res = await fetch("http://localhost:3000/products"); // <<< AJUSTE AQUI
+
+      if (!res.ok) {
+        throw new Error("Erro ao buscar produtos");
+      }
+
       return res.json();
     },
-    select: (data) => ({
-      category: data.category,
-      products: data.products,
-    }),
-  }).data || { category: null, products: [], loading: true };
+    initialData: [],
+  });
 }

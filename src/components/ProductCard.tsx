@@ -1,34 +1,26 @@
-interface ProductCardProps {
-  product: any;
-  onAddToCart: (p: any) => void;
-}
-
-export const ProductCard = ({ product, onAddToCart }: ProductCardProps) => {
+export function ProductCard({ product, onAdd }) {
   return (
-    <div className="bg-white rounded-lg shadow-sm border hover:shadow-md transition p-4 flex flex-col">
+    <div className="border p-4 rounded-lg shadow-sm">
       <img
-        src={product.image || "https://via.placeholder.com/300"}
+        src={product.image_url}
         alt={product.name}
-        className="w-full h-40 object-cover rounded-md mb-4"
+        className="w-full h-40 object-cover rounded"
       />
 
-      <h3 className="font-semibold text-lg">{product.name}</h3>
-      <p className="text-sm text-gray-600 mt-1 flex-1">
-        {product.description}
+      <h3 className="font-bold text-lg mt-4">{product.name}</h3>
+
+      <p className="text-gray-600 text-sm">{product.description}</p>
+
+      <p className="text-lg font-semibold mt-2">
+        R$ {product.price.toFixed(2)}
       </p>
 
-      <div className="mt-4 flex flex-col gap-2">
-        <span className="font-bold text-xl text-green-600">
-          R$ {product.price?.toFixed(2)}
-        </span>
-
-        <button
-          className="bg-black text-white py-2 rounded-md hover:bg-gray-800 transition"
-          onClick={() => onAddToCart(product)}
-        >
-          Adicionar ao carrinho
-        </button>
-      </div>
+      <button
+        className="bg-black text-white px-3 py-1 rounded mt-3 w-full"
+        onClick={() => onAdd(product)}
+      >
+        Adicionar ao carrinho
+      </button>
     </div>
   );
-};
+}
