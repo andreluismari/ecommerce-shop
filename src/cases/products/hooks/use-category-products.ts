@@ -8,9 +8,5 @@ export function useCategoryProducts(categoryId?: string) {
       if (!res.ok) throw new Error("Erro ao buscar produtos da categoria");
       return res.json();
     },
-    select: (data) => ({
-      category: data.category,
-      products: data.products,
-    }),
-  }).data || { category: null, products: [], loading: true };
+  });
 }
