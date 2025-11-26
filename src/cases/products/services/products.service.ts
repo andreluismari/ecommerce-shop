@@ -12,7 +12,7 @@ export interface Product {
 }
 
 // URL base da API (de preferência vinda do .env)
-const API_URL = import.meta.env.VITE_API_URL ?? "http://localhost:3001";
+const API_URL = import.meta.env.VITE_API_URL ?? "http://localhost:3000";
 
 async function handleResponse<T>(response: Response): Promise<T> {
   if (!response.ok) {
