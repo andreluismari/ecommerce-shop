@@ -1,14 +1,20 @@
 import { useQuery } from "@tanstack/react-query";
-import type { Product } from "@/types/product";
+import { Product } from "@/components/ProductCard";
 
-export function useCategoryProducts(categoryId?: string) {
+export function useCategoryProducts(categoryId: string | undefined) {
   return useQuery<Product[]>({
     queryKey: ["products-by-category", categoryId],
+    enabled: !!categoryId,
+
     queryFn: async () => {
-      const res = await fetch(`${import.meta.env.VITE_API_URL}/products?categoryId=${categoryId}`);
-      if (!res.ok) throw new Error("Erro ao buscar produtos por categoria");
+      const url = `http://localhost:3000/products?categoryId=${categoryId}`;
+      const res = await fetch(url);
+
+      if (!res.ok) {
+        throw new Error("Erro ao buscar produtos por categoria");
+      }
+
       return res.json();
     },
-    enabled: !!categoryId,
   });
 }

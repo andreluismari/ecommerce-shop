@@ -4,7 +4,11 @@ import { Home } from "./pages/Home";
 import { ProductDetail } from "./pages/ProductDetail";
 import { CategoryProducts } from "./pages/CategoryProducts";
 
+console.log("🔥 FRONT LENDO ENV:", import.meta.env.VITE_API_URL);
+
+
 export default function App() {
+  
   return (
     <BrowserRouter>
       <Routes>

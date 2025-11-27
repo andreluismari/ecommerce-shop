@@ -1,4 +1,17 @@
-export function ProductCard({ product, onAdd }) {
+export type Product = {
+  id: string;
+  name: string;
+  price: number;
+  description: string;
+  image_url: string;
+};
+
+type ProductCardProps = {
+  product: Product;
+  onAdd: (product: Product) => void;
+};
+
+export function ProductCard({ product, onAdd }: ProductCardProps) {
   return (
     <div className="border p-4 rounded-lg shadow-sm">
       <img
