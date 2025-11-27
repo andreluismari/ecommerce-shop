@@ -1,9 +1,12 @@
 export type Product = {
   id: string;
   name: string;
-  price: number | string; // 🔥 Aceita string porque vem do banco como string
   description: string;
-  image_url?: string; // 🔥 Evita erro caso não exista imagem no banco
+  price: number | string | null;
+  active: boolean;
+  image_url: string | null;
+  categoryId: string;
+  brandId: string;
 };
 
 type ProductCardProps = {
@@ -12,16 +15,13 @@ type ProductCardProps = {
 };
 
 export function ProductCard({ product, onAdd }: ProductCardProps) {
-  // 🔥 Converte preço para número de forma segura
-  const priceNumber =
-    typeof product.price === "string"
-      ? parseFloat(product.price)
-      : product.price;
+  // 🔥 Converte preço de forma SEGURA
+  const priceNumber = Number(product.price) || 0;
 
   return (
     <div className="border p-4 rounded-lg shadow-sm">
       <img
-        src={product.image_url || "https://via.placeholder.com/300"}
+        src={product.image_url || "https://via.placeholder.com/300x300?text=Sem+Imagem"}
         alt={product.name}
         className="w-full h-40 object-cover rounded"
       />

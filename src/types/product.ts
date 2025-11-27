@@ -1,15 +1,12 @@
-export interface Product {
+export type Product = {
   id: string;
   name: string;
-  description: string | null;
-  price: number;
+  description: string;
+  price: number | string;
   active: boolean;
-  category: {
-    id: string;
-    name: string;
-  };
-  brand?: {
-    id: string;
-    name: string;
-  };
-}
+  image_url: string | null;
+
+  // 🔥 Campos necessários para evitar erro silencioso
+  categoryId: string;
+  brandId: string;
+};
