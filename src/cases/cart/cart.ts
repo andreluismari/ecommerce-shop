@@ -1,47 +1,26 @@
-// src/cases/cart/cart.ts
-
-export interface CartProduct {
-  id: number | string;
-  name: string;
-  price: number;
-  description?: string;
-  image?: string;
-  [key: string]: any; // caso venha mais coisa da API
-}
-
-export interface CartItem {
-  product: CartProduct;
+export type CartItem = {
+  product: any;
   quantity: number;
-}
+};
 
-const STORAGE_KEY = "ecommerce_cart";
-
-function loadCart(): CartItem[] {
-  if (typeof window === "undefined") return [];
-  try {
-    const data = localStorage.getItem(STORAGE_KEY);
-    if (!data) return [];
-    return JSON.parse(data);
-  } catch {
-    return [];
-  }
-}
-
-function saveCart(cart: CartItem[]) {
-  if (typeof window === "undefined") return;
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(cart));
-}
+const CART_KEY = "ecommerce_cart";
 
 export function getCart(): CartItem[] {
-  return loadCart();
+  const stored = localStorage.getItem(CART_KEY);
+  return stored ? JSON.parse(stored) : [];
 }
 
-export function addToCart(product: CartProduct) {
-  const cart = loadCart();
-  const index = cart.findIndex((item) => item.product.id === product.id);
+export function saveCart(cart: CartItem[]) {
+  localStorage.setItem(CART_KEY, JSON.stringify(cart));
+}
 
-  if (index >= 0) {
-    cart[index].quantity += 1;
+export function addToCart(product: any) {
+  const cart = getCart();
+
+  const existing = cart.find((i) => i.product.id === product.id);
+
+  if (existing) {
+    existing.quantity += 1;
   } else {
     cart.push({ product, quantity: 1 });
   }
@@ -49,25 +28,23 @@ export function addToCart(product: CartProduct) {
   saveCart(cart);
 }
 
-export function removeFromCart(productId: CartProduct["id"]) {
-  const cart = loadCart().filter((item) => item.product.id !== productId);
+export function updateQuantity(productId: string, quantity: number) {
+  const cart = getCart();
+
+  const item = cart.find((i) => i.product.id === productId);
+  if (!item) return;
+
+  item.quantity = quantity;
+
   saveCart(cart);
 }
 
-export function updateQuantity(productId: CartProduct["id"], quantity: number) {
-  if (quantity <= 0) {
-    removeFromCart(productId);
-    return;
-  }
-
-  const cart = loadCart();
-  const index = cart.findIndex((item) => item.product.id === productId);
-  if (index >= 0) {
-    cart[index].quantity = quantity;
-    saveCart(cart);
-  }
+export function removeFromCart(productId: string) {
+  let cart = getCart();
+  cart = cart.filter((i) => i.product.id !== productId);
+  saveCart(cart);
 }
 
 export function clearCart() {
-  saveCart([]);
+  localStorage.removeItem(CART_KEY);
 }

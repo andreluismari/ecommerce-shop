@@ -1,13 +1,4 @@
-export type Product = {
-  id: string;
-  name: string;
-  description: string;
-  price: number | string | null;
-  active: boolean;
-  image_url: string | null;
-  categoryId: string;
-  brandId: string;
-};
+import { Product } from "@/cases/products/product-types";
 
 type ProductCardProps = {
   product: Product;
