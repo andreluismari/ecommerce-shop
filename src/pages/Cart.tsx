@@ -7,31 +7,46 @@ import {
   clearCart,
   type CartItem,
 } from "@/cases/cart/cart";
+import { createOrderFromCart } from "@/cases/orders/services/order-service";
+import { useNavigate } from "react-router-dom";
 
 export function Cart() {
   const [items, setItems] = useState<CartItem[]>([]);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
+  const navigate = useNavigate();
+
+  // Carrega itens do localStorage ao montar
   useEffect(() => {
     setItems(getCart());
   }, []);
+
+  function syncCart() {
+    setItems(getCart());
+  }
 
   function handleIncrease(id: CartItem["product"]["id"]) {
     const item = items.find((i) => i.product.id === id);
     if (!item) return;
     updateQuantity(id, item.quantity + 1);
-    setItems(getCart());
+    syncCart();
   }
 
   function handleDecrease(id: CartItem["product"]["id"]) {
     const item = items.find((i) => i.product.id === id);
     if (!item) return;
-    updateQuantity(id, item.quantity - 1);
-    setItems(getCart());
+    if (item.quantity <= 1) {
+      removeFromCart(id);
+    } else {
+      updateQuantity(id, item.quantity - 1);
+    }
+    syncCart();
   }
 
   function handleRemove(id: CartItem["product"]["id"]) {
     removeFromCart(id);
-    setItems(getCart());
+    syncCart();
   }
 
   function handleClear() {
@@ -39,25 +54,64 @@ export function Cart() {
     setItems([]);
   }
 
-  // garante number sempre
+  // Total com conversão segura de preço
   const total = items.reduce((sum, item) => {
-    const unitPrice = Number(item.product.price ?? 0);
-    return sum + unitPrice * item.quantity;
+    const price = Number(item.product.price) || 0;
+    return sum + price * item.quantity;
   }, 0);
 
+  async function handleCheckout() {
+    if (items.length === 0) return;
+
+    // 👉 Por enquanto pegamos o customerId do localStorage.
+    // Na FASE 2 (autenticação) isso vai vir do usuário logado.
+    const customerId = localStorage.getItem("customerId");
+
+    if (!customerId) {
+      alert("Você precisa estar logado para finalizar a compra (FASE 2).");
+      navigate("/login");
+      return;
+    }
+
+    setIsSubmitting(true);
+    setError(null);
+
+    try {
+      await createOrderFromCart(customerId, items);
+
+      // Limpa carrinho local
+      clearCart();
+      setItems([]);
+
+      alert("Pedido realizado com sucesso!");
+      navigate("/"); // se quiser, depois podemos criar uma página de sucesso
+    } catch (err) {
+      console.error(err);
+      setError("Não foi possível finalizar a compra. Tente novamente.");
+    } finally {
+      setIsSubmitting(false);
+    }
+  }
+
   return (
-    <div className="p-6 max-w-4xl mx-auto">
+    <div className="p-6 max-w-5xl mx-auto">
       <h1 className="text-3xl font-bold mb-6">Carrinho</h1>
 
       {items.length === 0 && (
         <p className="text-gray-500">Seu carrinho está vazio.</p>
       )}
 
+      {error && (
+        <div className="mb-4 rounded border border-red-300 bg-red-50 px-4 py-2 text-sm text-red-700">
+          {error}
+        </div>
+      )}
+
       {items.length > 0 && (
         <>
           <div className="space-y-4 mb-6">
             {items.map((item) => {
-              const unitPrice = Number(item.product.price ?? 0);
+              const unitPrice = Number(item.product.price) || 0;
               const lineTotal = unitPrice * item.quantity;
 
               return (
@@ -68,9 +122,8 @@ export function Cart() {
                   <div className="flex items-center gap-4">
                     <img
                       src={
-                        item.product.image_url?.trim()
-                          ? item.product.image_url
-                          : "https://via.placeholder.com/80x80?text=Sem+Imagem"
+                        item.product.image_url ||
+                        "https://via.placeholder.com/80"
                       }
                       alt={item.product.name}
                       className="w-20 h-20 object-cover rounded-md"
@@ -129,11 +182,16 @@ export function Cart() {
               <button
                 className="px-4 py-2 rounded-md border text-sm"
                 onClick={handleClear}
+                disabled={isSubmitting}
               >
                 Limpar carrinho
               </button>
-              <button className="px-4 py-2 rounded-md bg-black text-white text-sm hover:bg-gray-800 transition">
-                Finalizar compra
+              <button
+                className="px-4 py-2 rounded-md bg-black text-white text-sm hover:bg-gray-800 transition disabled:opacity-60"
+                onClick={handleCheckout}
+                disabled={isSubmitting}
+              >
+                {isSubmitting ? "Finalizando..." : "Finalizar compra"}
               </button>
             </div>
           </div>
