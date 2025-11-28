@@ -39,13 +39,14 @@ export function Cart() {
     setItems([]);
   }
 
+  // garante number sempre
   const total = items.reduce((sum, item) => {
-    const price = item.product.price ?? 0;
-    return sum + price * item.quantity;
+    const unitPrice = Number(item.product.price ?? 0);
+    return sum + unitPrice * item.quantity;
   }, 0);
 
   return (
-    <div>
+    <div className="p-6 max-w-4xl mx-auto">
       <h1 className="text-3xl font-bold mb-6">Carrinho</h1>
 
       {items.length === 0 && (
@@ -55,59 +56,68 @@ export function Cart() {
       {items.length > 0 && (
         <>
           <div className="space-y-4 mb-6">
-            {items.map((item) => (
-              <div
-                key={item.product.id}
-                className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-white border rounded-lg p-4 shadow-sm"
-              >
-                <div className="flex items-center gap-4">
-                  <img
-                    src={item.product.image || "https://via.placeholder.com/80"}
-                    alt={item.product.name}
-                    className="w-20 h-20 object-cover rounded-md"
-                  />
-                  <div>
-                    <h2 className="font-semibold text-lg">
-                      {item.product.name}
-                    </h2>
-                    <p className="text-sm text-gray-500">
-                      R$ {item.product.price?.toFixed(2)}
-                    </p>
-                  </div>
-                </div>
+            {items.map((item) => {
+              const unitPrice = Number(item.product.price ?? 0);
+              const lineTotal = unitPrice * item.quantity;
 
-                <div className="flex items-center gap-4">
-                  <div className="flex items-center gap-2">
-                    <button
-                      className="px-2 py-1 border rounded"
-                      onClick={() => handleDecrease(item.product.id)}
-                    >
-                      -
-                    </button>
-                    <span className="w-8 text-center">
-                      {item.quantity}
+              return (
+                <div
+                  key={item.product.id}
+                  className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-white border rounded-lg p-4 shadow-sm"
+                >
+                  <div className="flex items-center gap-4">
+                    <img
+                      src={
+                        item.product.image_url?.trim()
+                          ? item.product.image_url
+                          : "https://via.placeholder.com/80x80?text=Sem+Imagem"
+                      }
+                      alt={item.product.name}
+                      className="w-20 h-20 object-cover rounded-md"
+                    />
+                    <div>
+                      <h2 className="font-semibold text-lg">
+                        {item.product.name}
+                      </h2>
+                      <p className="text-sm text-gray-500">
+                        R$ {unitPrice.toFixed(2)}
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center gap-4">
+                    <div className="flex items-center gap-2">
+                      <button
+                        className="px-2 py-1 border rounded"
+                        onClick={() => handleDecrease(item.product.id)}
+                      >
+                        -
+                      </button>
+                      <span className="w-8 text-center">
+                        {item.quantity}
+                      </span>
+                      <button
+                        className="px-2 py-1 border rounded"
+                        onClick={() => handleIncrease(item.product.id)}
+                      >
+                        +
+                      </button>
+                    </div>
+
+                    <span className="font-semibold">
+                      R$ {lineTotal.toFixed(2)}
                     </span>
+
                     <button
-                      className="px-2 py-1 border rounded"
-                      onClick={() => handleIncrease(item.product.id)}
+                      className="text-red-500 text-sm hover:underline"
+                      onClick={() => handleRemove(item.product.id)}
                     >
-                      +
+                      Remover
                     </button>
                   </div>
-
-                  <span className="font-semibold">
-                    R$ {(item.product.price * item.quantity).toFixed(2)}
-                  </span>
-
-                  <button
-                    className="text-red-500 text-sm hover:underline"
-                    onClick={() => handleRemove(item.product.id)}
-                  >
-                    Remover
-                  </button>
                 </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
 
           <div className="flex flex-col md:flex-row items-center justify-between gap-4 border-t pt-4">

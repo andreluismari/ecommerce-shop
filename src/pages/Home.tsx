@@ -1,7 +1,7 @@
 import { useProducts } from "@/cases/products/hooks/use-products";
 import { ProductCard } from "@/components/ProductCard";
 import { addToCart } from "@/cases/cart/cart";
-import type { Product } from "@/types/product";
+import type { Product } from "@/components/ProductCard";
 
 export function Home() {
   const { data: products = [], isLoading } = useProducts();
@@ -21,7 +21,10 @@ export function Home() {
           <ProductCard
             key={product.id}
             product={product}
-            onAddToCart={() => addToCart(product)}
+            onAdd={(p) => {
+              addToCart(p);
+              alert("Produto adicionado ao carrinho!");
+            }}
           />
         ))}
       </div>
