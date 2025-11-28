@@ -1,32 +1,30 @@
-import { useProducts } from "@/cases/products/hooks/use-products";
+import { useState } from "react";
+import { useProducts } from "@/cases/products/services/use-products";
 import { ProductCard } from "@/components/ProductCard";
-import { addToCart } from "@/cases/cart/cart";
-import type { Product } from "@/components/ProductCard";
+import { CategorySidebar } from "@/cases/categories/components/CategorySidebar";
 
 export function Home() {
-  const { data: products = [], isLoading } = useProducts();
+  const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
+
+  const { data: products = [], isLoading } = useProducts(selectedCategory);
 
   return (
-    <div className="p-6">
-      <h1 className="text-2xl font-bold mb-6">Produtos em Destaque</h1>
+    <div className="flex gap-8">
+      <CategorySidebar
+        selected={selectedCategory}
+        onSelect={setSelectedCategory}
+      />
 
-      {isLoading && <p>Carregando produtos...</p>}
+      <div className="flex-1">
+        <h1 className="text-2xl font-bold mb-4">Catálogo</h1>
 
-      {!isLoading && products.length === 0 && (
-        <p className="text-gray-500">Nenhum produto encontrado.</p>
-      )}
+        {isLoading && <p>Carregando produtos...</p>}
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 mt-6">
-        {products.map((product: Product) => (
-          <ProductCard
-            key={product.id}
-            product={product}
-            onAdd={(p) => {
-              addToCart(p);
-              alert("Produto adicionado ao carrinho!");
-            }}
-          />
-        ))}
+        <div className="grid grid-cols-4 gap-4">
+          {products.map((p) => (
+            <ProductCard key={p.id} product={p} onAdd={() => {}} />
+          ))}
+        </div>
       </div>
     </div>
   );
