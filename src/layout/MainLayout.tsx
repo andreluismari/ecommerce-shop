@@ -1,21 +1,37 @@
-import { Outlet } from "react-router-dom";
-import { Navbar } from "@/components/Navbar";
+// src/layout/MainLayout.tsx
+import { Outlet, Link } from "react-router-dom";
+import { useAuth } from "../context/AuthContext";
 
 export function MainLayout() {
-  return (
-    <div className="min-h-screen flex flex-col bg-gray-50">
-      {/* NAV */}
-      <Navbar />
+  const { user, logoutUser } = useAuth();
 
-      {/* CONTENT */}
-      <main className="flex-1 container mx-auto px-4 py-10">
+  return (
+    <div>
+      <header className="flex justify-end gap-6 p-4 border-b">
+        <Link to="/">Home</Link>
+        <Link to="/cart">Carrinho</Link>
+
+        {user ? (
+          <>
+            <span>{user.email}</span>
+            <button
+              onClick={logoutUser}
+              className="text-red-600 font-semibold"
+            >
+              Sair
+            </button>
+          </>
+        ) : (
+          <>
+            <Link to="/login">Login</Link>
+            <Link to="/register">Cadastrar</Link>
+          </>
+        )}
+      </header>
+
+      <main className="p-8">
         <Outlet />
       </main>
-
-      {/* FOOTER */}
-      <footer className="py-6 text-center text-sm text-gray-500 border-t">
-        © {new Date().getFullYear()} • Ecommerce Shop — Desenvolvido por Andre Mari
-      </footer>
     </div>
   );
 }

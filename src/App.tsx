@@ -13,7 +13,8 @@ import Login from "./pages/Login";
 import Register from "./pages/Register";
 import { Checkout } from "./pages/Checkout";
 
-import { PrivateRoute } from "./routes/PrivateRoute";
+import PrivateRoute from "./routes/PrivateRoute";
+
 
 const queryClient = new QueryClient();
 

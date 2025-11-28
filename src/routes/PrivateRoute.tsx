@@ -1,8 +1,8 @@
 // src/routes/PrivateRoute.tsx
-import { useAuth } from "../context/AuthContext";
+import { useAuth } from "@/context/AuthContext";
 import { Navigate } from "react-router-dom";
 
-export function PrivateRoute({ children }: { children: JSX.Element }) {
+export default function PrivateRoute({ children }: { children: JSX.Element }) {
   const { user } = useAuth();
 
   if (!user) {
