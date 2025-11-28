@@ -1,9 +1,12 @@
-// src/pages/Checkout.tsx
 import { useAuth } from "@/context/AuthContext";
 import { clearCart, getCart, type CartItem } from "@/cases/cart/cart";
 import { useEffect, useState } from "react";
+import { OrderService } from "@/cases/orders/services/order-service";
+import { toast } from "react-toastify";
+import { useNavigate } from "react-router-dom";
 
 export function Checkout() {
+  const navigate = useNavigate();
   const { user } = useAuth();
   const [items, setItems] = useState<CartItem[]>([]);
 
@@ -11,14 +14,35 @@ export function Checkout() {
     setItems(getCart());
   }, []);
 
-  if (!user) {
-    return (
-      <div className="p-6">
-        <p className="text-red-600 font-semibold">
-          Você precisa estar logado para finalizar a compra.
-        </p>
-      </div>
-    );
+  // Se não tem login, vamos criar pedido SEM customer
+  const customerId = user?.id ?? null;
+
+  async function handleConfirmOrder() {
+    try {
+      const orderPayload = {
+        customerId: customerId, // se for null o backend precisa aceitar
+        items: items.map((i) => ({
+          productId: i.product.id,
+          quantity: i.quantity,
+          total: Number(i.product.price) * i.quantity,
+        })),
+        shipping: 0,
+      };
+
+      const order = await OrderService.create(orderPayload);
+
+      toast.success("Pedido finalizado com sucesso!");
+
+      clearCart();
+      setItems([]);
+
+      // redireciona após criar
+      navigate("/orders");
+
+    } catch (err) {
+      console.error(err);
+      toast.error("Erro ao finalizar pedido.");
+    }
   }
 
   return (
@@ -38,19 +62,13 @@ export function Checkout() {
                 className="border p-3 rounded-md flex justify-between"
               >
                 <span>{item.product.name}</span>
-                <span className="font-semibold">
-                  {item.quantity} un.
-                </span>
+                <span className="font-semibold">{item.quantity} un.</span>
               </li>
             ))}
           </ul>
 
           <button
-            onClick={() => {
-              alert("Pedido finalizado com sucesso! Obrigado pela compra 😊");
-              clearCart();
-              setItems([]);
-            }}
+            onClick={handleConfirmOrder}
             className="mt-6 px-4 py-2 w-full bg-black text-white rounded hover:bg-gray-800"
           >
             Confirmar compra

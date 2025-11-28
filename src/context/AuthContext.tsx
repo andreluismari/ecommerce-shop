@@ -1,47 +1,49 @@
 // src/context/AuthContext.tsx
 import { createContext, useContext, useEffect, useState } from "react";
-import { supabase } from "../services/supabase";
-import { api } from "../services/api";
+import { supabase } from "@/services/supabase";
+import { api } from "@/services/api";
 
 const AuthContext = createContext(null);
 
 export function AuthProvider({ children }) {
-  const [user, setUser] = useState(null);       // usuário do Supabase
-  const [customer, setCustomer] = useState(null); // cliente do backend
+  const [user, setUser] = useState(null);       // Usuário do Supabase
+  const [customer, setCustomer] = useState(null); // Customer do backend
   const [loading, setLoading] = useState(true);
 
-  // --------------------------------------------
-  // 🔥 Carregar sessão + carregar customer do backend
-  // --------------------------------------------
-  useEffect(() => {
-    async function loadSession() {
-      setLoading(true);
+  // -----------------------------------------------------
+  // 🔥 Carrega usuário + customer associado
+  // -----------------------------------------------------
+  async function loadUserAndCustomer() {
+    setLoading(true);
 
-      // 1. Buscar usuário logado do Supabase
-      const { data } = await supabase.auth.getUser();
-      const supaUser = data.user ?? null;
-      setUser(supaUser);
+    // 1. OBTÉM USUÁRIO DO SUPABASE
+    const { data } = await supabase.auth.getUser();
+    const supaUser = data.user ?? null;
+    setUser(supaUser);
 
-      // 2. Se existe usuário → buscar customer correspondente
-      if (supaUser) {
-        try {
-          const { data: customerData } = await api.get(
-            `/customers/${supaUser.id}`
-          );
-          setCustomer(customerData);
-        } catch {
-          setCustomer(null); // caso ainda não exista
-        }
-      } else {
+    // 2. SE EXISTE USUÁRIO → BUSCA CUSTOMER NO BACKEND
+    if (supaUser) {
+      try {
+        const { data: customerData } = await api.get(
+          `/customers/${supaUser.id}` // busca usando authUserId
+        );
+        setCustomer(customerData);
+      } catch (err) {
+        console.warn("⚠ Customer não encontrado no backend");
         setCustomer(null);
       }
-
-      setLoading(false);
+    } else {
+      setCustomer(null);
     }
 
-    loadSession();
+    setLoading(false);
+  }
 
-    // Monitorar mudanças de sessão
+  // Executa ao iniciar a aplicação
+  useEffect(() => {
+    loadUserAndCustomer();
+
+    // Escuta mudanças de login/logout
     const { data: listener } = supabase.auth.onAuthStateChange(
       async (_event, session) => {
         const supaUser = session?.user ?? null;
@@ -65,30 +67,31 @@ export function AuthProvider({ children }) {
     return () => listener.subscription.unsubscribe();
   }, []);
 
-  // -------------------------------------------------
-  // 🔥 Registrar novo usuário + criar customer no backend
-  // -------------------------------------------------
+  // -----------------------------------------------------
+  // 🔥 Registrar usuário (Supabase + Backend)
+  // -----------------------------------------------------
   async function registerUser(email, password) {
     const { data, error } = await supabase.auth.signUp({ email, password });
     if (error) throw error;
 
-    const userId = data.user.id;
+    const supabaseId = data.user.id;
 
-    // Criar também no backend (customer)
+    // Criar "Customer" no backend vinculado ao Supabase
     await api.post("/customers", {
-      id: userId,
       name: email,
       address: "",
       zipcode: "",
-      city: null,
+      cityId: null,
+      authUserId: supabaseId, // 🔥 AGORA ESTÁ CORRETO
     });
 
+    await loadUserAndCustomer();
     return true;
   }
 
-  // -------------------------------------------------
-  // 🔥 Login normal
-  // -------------------------------------------------
+  // -----------------------------------------------------
+  // 🔥 Login
+  // -----------------------------------------------------
   async function loginUser(email, password) {
     const { error } = await supabase.auth.signInWithPassword({
       email,
@@ -96,21 +99,17 @@ export function AuthProvider({ children }) {
     });
 
     if (error) throw error;
-
+    await loadUserAndCustomer();
     return true;
   }
 
-  // -------------------------------------------------
-  // 🔥 Logout — limpa tudo
-  // -------------------------------------------------
+  // -----------------------------------------------------
+  // 🔥 Logout
+  // -----------------------------------------------------
   async function logoutUser() {
-    const { error } = await supabase.auth.signOut();
-    if (error) throw error;
-
+    await supabase.auth.signOut();
     setUser(null);
     setCustomer(null);
-
-    return true;
   }
 
   return (
@@ -122,6 +121,7 @@ export function AuthProvider({ children }) {
         registerUser,
         loginUser,
         logoutUser,
+        reloadAuth: loadUserAndCustomer,
       }}
     >
       {children}
